@@ -2,27 +2,35 @@ import React, {useState, useEffect} from 'react';
 
 function App() {
 
-    const [data, setData] = useState(null)
-    const [update, setUpdate] = useState(false)
+    const [data, setData] = useState([])
+
     
     useEffect( () => {
         fetch('http://localhost:3001/latest')
         .then(res =>  res.json())
         .then( data => setData(data))
-    }, [update])
+    }, [data])
+
+    const handleGet = async() => {
+        await fetch(`http://localhost:3001/latest`, {
+            method: 'get'
+        })
+        
+    }
 
     const handleDelete = (id) => {
-        
         fetch(`http://localhost:3001/messages/${id}`, {
-            method: 'DELETE'
+            method: 'delete'
         })
     }
+    
 
     return (
         <div>
-            {data && data.map(msg => (
-                <h1>{msg.text}<button onclick={handleDelete(msg.id)}>X</button></h1>
+            {data && data.map((msg, i)=> (
+                <h1 key={i}>{msg.text}<button onClick={() => {handleDelete(msg.id)}}>X</button></h1>
             ))}
+            <button onClick={handleGet}>See latest</button>
         </div>
     );
 };

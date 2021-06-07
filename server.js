@@ -12,6 +12,11 @@ const welcomeMessage = {
   from: "Bart",
   text: "Welcome to CYF chat system!",
 };
+const msg = {
+  id: 1,
+  from: "Marina",
+  text: "No vamo de fiescha",
+};
 //functions
 function findById (input, id) {
   return input.find( once => once.id === id)
@@ -21,7 +26,7 @@ function findById (input, id) {
 //We will start with one message in the array.
 //Note: messages will be lost when Glitch restarts our server.
 
-const messages = [welcomeMessage];
+const messages = [welcomeMessage, msg];
 
 app.get("/", function (request, response) {
   response.sendFile(__dirname + "/index.html");
