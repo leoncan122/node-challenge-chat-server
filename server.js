@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require('fs')
+
+const { response } = require("express");
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.get("/", function (request, response) {
 
 app.get("/messages", function (request, response) {
   if (messages) {
-    response.status(200).json(welcomeMessage);
+    response.status(200).json(messages);
   }else {
     response.status(404).send("There aren't any messages yet");
   }
@@ -55,19 +56,34 @@ app.get("/messages/:id", function (request, response) {
   
 });
 
+app.get('/search', function (request, response) {
+  let textQuery = request.query.text.toLocaleLowerCase()
+  const matches =  messages.filter( m => m.text.toLocaleLowerCase().includes(textQuery))
+  
+  response.status(200).send(matches)
+})
+
+app.get('/latest', function (request, response) {
+
+  let latest = messages.slice(messages.length - 10)
+  response.status(200).send(latest)
+
+})
 app.use(express.json())
 
 app.post("/messages", function (request, response) {
   let newMessage = request.body
 
   if (newMessage.from && newMessage.text) {
-    let id = messages.length
-  
+    const id = Math.max(...messages.map((q) => q.id)) + 1;
+    const timeSent = new Date()
+
     newMessage.id = id
+    newMessage.timeSent = timeSent
 
     messages.push(newMessage)
 
-    response.status(201).json(newMessage)
+    response.status(201).json(messages)
   } else {
     response.status(400).send("The message sintax it's not correct")
   }
@@ -79,25 +95,36 @@ app.delete("/messages/:id", function (request, response) {
   let id = parseInt(request.params.id)
 
   if (typeof id === 'number') {
-
-    if (id >= 0 && id <= messages.length-1) {
-      let msgIndex = messages.findIndex( msg => msg.id === id)
-
+    let msgIndex = messages.findIndex( msg => msg.id === id)
+    if (msgIndex !== -1) {
+      
       messages.splice(msgIndex, 1)
-
       response.status(201).send(`Message with id = ${id} was deleted`)
+
     }else {
-      response.status(404).send(`The ID=${id} doesn't exist`);
+      response.status(400).send(`The ID=${id} doesn't exist`);
     }
 
   } else {
-    response.status(404).send('Id must be a number');
+    response.status(400).send('Id must be a number');
   }
-  
-
-  
 });
 
-app.listen(3000, () => {
-   console.log("Listening on port 3000")
+app.put('/messages/:id',function(req, res) {
+  const id = parseInt(req.params.id)
+  const msgIndex = messages.findIndex( msg => msg.id === id)
+
+  if (msgIndex !== -1) {
+    const newMessage = { ...messages[msgIndex], ...req.body }
+    
+    messages[msgIndex] = newMessage
+
+    res.status(200).send(newMessage)
+  } else {
+    res.status(400)
+  }
+})
+
+app.listen(3001, () => {
+   console.log("Listening on port 3001")
   });
